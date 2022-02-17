@@ -3,6 +3,8 @@ import {SearchPanel} from "./searchPanel";
 import {List} from "./list";
 import {useEffect, useState} from "react";
 import {cleanObject, useDebounce, useMount} from "../../util";
+import {useHttp} from "../../util/http";
+import styled from "@emotion/styled";
 
 const apiUrl = process.env.REACT_APP_API_URL
 
@@ -14,26 +16,23 @@ export const ProjectListScreen = () => {
     })
     const [users, setUsers] = useState([])
     const debounceParam = useDebounce(param, 2000)
+    const client = useHttp()
 
     useEffect(() =>{
-        fetch(`${apiUrl}/projects?${stringify(cleanObject(param))}`).then(async res =>{
-            if(res.ok){
-                setList(await res.json())
-            }
-        })
+        client('projects', {data:cleanObject(debounceParam)}).then(setList)
     }, [debounceParam])
 
     useMount(() =>{
-        fetch(`${apiUrl}/users`).then(async res =>{
-            if(res.ok){
-                setUsers(await res.json())
-            }
-        })
+        client('users').then(setUsers)
     })
     return(
-        <div>
+        <Container>
             <SearchPanel param={param} setParam={setParam} users={users}/>
             <List list={list} users={users}/>
-        </div>
+        </Container>
     )
 }
+
+const Container = styled.div`
+    padding: 3.2rem;
+`
