@@ -1,13 +1,17 @@
 import React, {FormEvent, useState} from "react";
 import {RegisterScreen} from "./register";
 import {LoginScreen} from "./login";
-import {Button, Card, Divider} from "antd";
+import {Button, Card, Divider, Typography} from "antd";
+import {Helmet} from "react-helmet";
 import styled from "@emotion/styled";
+import {useDocumentTitle} from "../util";
 
 export const UnauthenticatedApp = () =>{
 
     const [isRegister, setIsRegister] = useState(false)
+    const [error, setError] = useState<Error | null>(null)
 
+    useDocumentTitle('请登录或注册')
     return(
         <Container>
             <ShadowCard>
@@ -15,7 +19,10 @@ export const UnauthenticatedApp = () =>{
                     {isRegister ? '请注册' : '请登录'}
                 </Title>
                 {
-                    isRegister ? <RegisterScreen /> : <LoginScreen />
+                    error ? <Typography.Text type='danger'>{error.message}</Typography.Text> : null
+                }
+                {
+                    isRegister ? <RegisterScreen onError={setError}/> : <LoginScreen onError={setError}/>
                 }
                 <Divider />
                 <a onClick={() => setIsRegister(!isRegister)}>切换到{isRegister ? '登录' : '注册'}</a>

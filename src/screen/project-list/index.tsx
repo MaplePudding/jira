@@ -1,37 +1,40 @@
-import {stringify} from 'qs'
 import {SearchPanel} from "./searchPanel";
-import {List} from "./list";
-import {useEffect, useState} from "react";
-import {cleanObject, useDebounce, useMount} from "../../util";
-import {useHttp} from "../../util/http";
+import {List, Project} from "./list";
+import React, {useEffect, useState} from "react";
+import {cleanObject, useDebounce, useDocumentTitle, useMount} from "../../util";
 import styled from "@emotion/styled";
-
-const apiUrl = process.env.REACT_APP_API_URL
+import {Button, Row, Typography} from "antd";
+import {useProjects} from "../../util/project";
+import {useUsers} from "../../util/user";
+import {useUrlQueryParam} from "../../util/url";
+import {useProjectModal, useProjectSearchParam} from "./util";
+import {ErrorBox} from "../../components/lib";
 
 export const ProjectListScreen = () => {
-    const [list, setList] = useState([])
-    const [param, setParam] = useState({
-        name: '',
-        personId: ''
-    })
-    const [users, setUsers] = useState([])
+    const [param, setParam] = useProjectSearchParam()
     const debounceParam = useDebounce(param, 2000)
-    const client = useHttp()
+    const { open } = useProjectModal();
+    const {isLoading, error, data:list} = useProjects(debounceParam)
+    const {data: users}  = useUsers()
 
-    useEffect(() =>{
-        client('projects', {data:cleanObject(debounceParam)}).then(setList)
-    }, [debounceParam])
+    useDocumentTitle('项目列表', false)
 
-    useMount(() =>{
-        client('users').then(setUsers)
-    })
     return(
         <Container>
-            <SearchPanel param={param} setParam={setParam} users={users}/>
-            <List list={list} users={users}/>
+            <Row justify={"space-between"}>
+                <h1>项目列表</h1>
+                <Button type={"link"} onClick={open}>
+                    创建项目
+                </Button>
+            </Row>
+            <SearchPanel param={param} setParam={setParam} users={users || []}/>
+            <ErrorBox error={error} />
+            <List loading={isLoading} dataSource={list || []} users={users || []}/>
         </Container>
     )
 }
+
+ProjectListScreen.whyDidYouRender = true
 
 const Container = styled.div`
     padding: 3.2rem;

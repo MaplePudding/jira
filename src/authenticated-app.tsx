@@ -3,36 +3,28 @@ import React from "react";
 import {useAuth} from "./context/auth-context";
 import styled from "@emotion/styled";
 import {Row} from "./components/lib";
-import {Dropdown, Menu} from "antd";
+import {Button, Dropdown, Menu} from "antd";
+import {BrowserRouter as Router} from "react-router-dom";
+import { Route, Routes}from "react-router"
+import {ProjectScreen} from "./screen/project";
+import {ProjectModal} from "./screen/project-list/project-modal";
+import {ProjectPopover} from "./components/project-opover";
 
 export const AuthenticatedApp = () =>{
-    const {logout, user} = useAuth()
 
     return (
         <Container>
-            <Header>
-                <HeaderLeft gap={true}>
-                    <HeaderItem>项目</HeaderItem>
-                    <HeaderItem>用户</HeaderItem>
-                </HeaderLeft>
-                <HeaderRight>
-                    <Dropdown overlay={
-                        <Menu>
-                            <Menu.Item key={'logout'}>
-                                <a onClick={logout}>登出</a>
-                            </Menu.Item>
-                        </Menu>
-                    }>
-                        <a onClick={(e) => e.preventDefault()}>
-                            Hi, {user?.name}
-                        </a>
-                    </Dropdown>
-                </HeaderRight>
-            </Header>
-            <Main>
-                <ProjectListScreen />
-            </Main>
-            <Footer>footer</Footer>
+            <Router>
+                <PageHeader />
+                <Main>
+                    <Routes>
+                        <Route path={'/projects'} element={<ProjectListScreen />} />
+                        <Route path={'/projects/:projectId/*'} element={<ProjectScreen />} />
+                    </Routes>
+                <ProjectModal />
+                </Main>
+                <Footer>footer</Footer>
+            </Router>
         </Container>
     )
 }
@@ -58,10 +50,48 @@ const Header = styled.div`
     box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.1);
 `
 
-const HeaderItem = styled.h3`margin-right: 3rem`
+export const HeaderItem = styled.h3`margin-right: 3rem`
 const HeaderLeft = styled(Row)``
 const HeaderRight = styled.div``
-const Main = styled.main`grid-area: main`
+const Main = styled.main`
+    grid-area: main;
+    display: flex;
+    overflow: hidden;
+`
 const Nav = styled.nav`grid-area: nav`
 const Aside = styled.aside`grid-area: aside`
 const Footer = styled.aside`grid-area: footer`
+
+const PageHeader = () =>{
+    const {logout, user} = useAuth()
+    return(
+        <Header>
+            <HeaderLeft gap={true}>
+                <ProjectPopover />
+                <HeaderItem>用户</HeaderItem>
+            </HeaderLeft>
+            <HeaderRight>
+                <User />
+            </HeaderRight>
+        </Header>
+    )
+}
+
+const User = () => {
+    const { logout, user } = useAuth();
+    return (
+        <Dropdown
+            overlay={
+                <Menu>
+                    <Menu.Item key={"logout"}>
+                        <Button type={"link"} onClick={logout}>
+                            登出
+                        </Button>
+                    </Menu.Item>
+                </Menu>
+            }
+        >
+            <Button type={"link"}>Hi, {user?.name}</Button>
+        </Dropdown>
+    );
+};
